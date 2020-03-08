@@ -1,0 +1,40 @@
+*********************************************************************************************************
+Instruction to remove noisy pixels
+*********************************************************************************************************
+*********************************************************************************************************
+FOREWORDS
+*********************************************************************************************************
+In the config file, in the section Run Parameter, add this line :
+"ApplyVeto:       0"
+
+If this parameter is set to 1, TAF will remove noisy pixels in the analysis based on the list of pixels of the file veto.C
+If this parameter is set to 0 ( actually, it can be any number but 1 ), TAF will not remove noisy pixels. 
+
+*********************************************************************************************************
+RECIPE to remove pixels
+*********************************************************************************************************
+
+1. In the config file, choose a dataset without source and set the parameter "ApplyVeto" to 0
+2. We will identify noisy pixels and store them inside a function called veto.C, in the directory "taf/code/src/".
+To do this, there are two possibilities :
+
+a) in the terminal, type :
+$> taf
+$> gTAF->InitSession(<RunNumber>) ( TAF might not find your config file, so it will ask you to type the config file name )
+$> gTAF->GetRaw()->DisplayCumulatedRawData2D(150000, "continuous", -65536, 0.001, 1, 20, 0, true)
+where the first number corresponds to the number of events to inspects and the number before the boolean corresponds to the maximum relative occurence allowed for a pixel. 
+It can't be below 0.005, so, in our case, we will tag pixels as noisy if they have a relative occurence above 0.005.
+Feel free to choose your maximum relative occurence.
+
+Once you have done this, TAF will identify the noisy pixels and write them in veto.C. 
+
+b)in the terminal type :
+$> taf -run <RunNumber> -cfg ./config/<ConfigFileName> -guiw
+A panel will open and you will click on the button "HOT PIXELS MAP". This button will launch the analysis to identify noisy pixels, as before. However, if you want to change the maximum relative occurence, you will have to open the file MRaw.cxx, located in the directory taf/code/src/, and change manually the value of the maximum relative occurence in the button "HOT PIXELS MAP" ( in the first hundred lines ). After that, you will have to recompile TAF ( $> maketaf ).
+
+3. Even though noisy pixels have been identified and stored inside the file veto.C, TAF kept in mind the veto.C from the last compilation. In order to tell to TAF that veto.C has changed, type :
+$> touch code/src/VMEBoardReader.cxx
+$> maketaf
+
+4. Now TAF has in mind the veto.C, generated in the previous steps. To remove pixels, in your future analysis, you simply need to change the parameter "ApplyVeto" from 0 to 1.
+Enjoy !
